@@ -1,0 +1,15 @@
+{
+  "name": "remotedesk-server",
+  "version": "1.0.0",
+  "description": "Signaling server for RemoteDesk",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "engines": { "node": ">=18" }
+}

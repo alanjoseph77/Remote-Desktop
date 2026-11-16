@@ -1,0 +1,22 @@
+# Signaling server + HTTPS (Caddy gets a Let's Encrypt cert automatically) + TURN relay.
+# 1. Point a DNS name (e.g. remote.example.com) at this machine.
+# 2. Edit Caddyfile and the TURN secret below, then: docker compose up -d
+services:
+  signaling:
+    build: { context: .., dockerfile: deploy/Dockerfile }
+    restart: unless-stopped
+    volumes: [ "ids:/data" ]
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: [ "80:80", "443:443" ]
+    volumes: [ "./Caddyfile:/etc/caddy/Caddyfile", "caddy:/data" ]
+  turn:
+    image: coturn/coturn
+    restart: unless-stopped
+    network_mode: host
+    command: >
+      -n --listening-port=3478 --fingerprint --lt-cred-mech
+      --user=remotedesk:CHANGE_ME_STRONG_PASSWORD --realm=remotedesk
+      --no-cli --no-tlsv1 --no-tlsv1_1
+volumes: { ids: {}, caddy: {} }

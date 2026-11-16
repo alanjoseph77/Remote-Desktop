@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob: mediastream:; connect-src 'self' ws: wss:;" />
+  <title>RemoteDesk</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ================= HOME ================= -->
+  <main id="home" class="view">
+    <header class="topbar">
+      <div class="brand"><span class="logo">◧</span> RemoteDesk</div>
+      <div class="topbar-right">
+        <span id="server-status" class="pill offline"><i></i><span>Offline</span></span>
+        <button id="open-settings" class="icon-btn" title="Settings" aria-label="Settings">⚙</button>
+      </div>
+    </header>
+
+    <div id="host-banner" class="banner hidden">
+      <div class="banner-text">
+        <strong id="host-banner-name">Partner</strong> is connected to this computer.
+      </div>
+      <label class="switch"><input type="checkbox" id="host-allow-control" checked /><span></span> Allow control</label>
+      <button id="host-chat-btn" class="btn ghost small">Chat</button>
+      <button id="host-disconnect" class="btn danger small">Disconnect</button>
+    </div>
+
+    <div id="warnings"></div>
+
+    <section class="cards">
+      <article class="card">
+        <h2>Allow remote control</h2>
+        <p class="muted">Share this ID and password with the person who will connect to you.</p>
+        <label class="field-label">Your ID</label>
+        <div class="big-value"><span id="my-id">— — —</span>
+          <button class="icon-btn" data-copy="my-id" title="Copy ID" aria-label="Copy ID">⧉</button></div>
+        <label class="field-label">Password</label>
+        <div class="big-value"><span id="my-password">••••••••</span>
+          <button class="icon-btn" data-copy="my-password" title="Copy password" aria-label="Copy password">⧉</button>
+          <button id="new-password" class="icon-btn" title="New password" aria-label="New password">↻</button></div>
+        <p class="muted small" id="unattended-note"></p>
+      </article>
+
+      <article class="card">
+        <h2>Control remote computer</h2>
+        <p class="muted">Enter your partner's ID and password.</p>
+        <form id="connect-form" autocomplete="off">
+          <label class="field-label" for="partner-id">Partner ID</label>
+          <input id="partner-id" class="input big" inputmode="numeric" placeholder="123 456 789" maxlength="11" required />
+          <label class="field-label" for="partner-password">Password</label>
+          <input id="partner-password" class="input" type="password" placeholder="Password" required />
+          <button id="connect-btn" class="btn primary wide" type="submit">Connect</button>
+          <p id="connect-status" class="muted small" role="status"></p>
+        </form>
+      </article>
+    </section>
+  </main>
+
+  <!-- ================= SESSION (viewer) ================= -->
+  <main id="session" class="view hidden">
+    <div class="toolbar">
+      <div class="tb-left">
+        <span class="dot live"></span><strong id="session-name">Partner</strong>
+        <span id="session-stats" class="muted small"></span>
+      </div>
+      <div class="tb-right">
+        <select id="display-select" class="select" title="Monitor"></select>
+        <select id="quality-select" class="select" title="Quality">
+          <option value="best">Best quality</option>
+          <option value="balanced" selected>Balanced</option>
+          <option value="fast">Fast connection</option>
+        </select>
+        <div class="menu">
+          <button class="btn ghost small" id="keys-btn">Keys ▾</button>
+          <div class="menu-list hidden" id="keys-menu">
+            <button data-combo="AltLeft,Tab">Alt + Tab</button>
+            <button data-combo="MetaLeft">Windows / Cmd key</button>
+            <button data-combo="ControlLeft,ShiftLeft,Escape">Task Manager (Ctrl+Shift+Esc)</button>
+            <button data-combo="PrintScreen">Print Screen</button>
+            <button data-combo="Escape">Esc</button>
+          </div>
+        </div>
+        <button class="btn ghost small" id="file-btn">Send file</button>
+        <input type="file" id="file-input" class="hidden" />
+        <button class="btn ghost small" id="chat-btn">Chat</button>
+        <button class="btn ghost small" id="fullscreen-btn" title="Ctrl+Alt+Shift+F leaves fullscreen">Fullscreen</button>
+        <button class="btn danger small" id="end-btn">End</button>
+      </div>
+    </div>
+    <div class="stage" id="stage">
+      <video id="remote-video" autoplay playsinline muted tabindex="0"></video>
+      <div id="view-only" class="overlay-note hidden">View only — the partner turned off remote control</div>
+      <div id="drop-hint" class="drop-hint hidden">Drop to send file</div>
+    </div>
+  </main>
+
+  <!-- ================= CHAT PANEL ================= -->
+  <aside id="chat" class="chat hidden">
+    <header><strong>Chat</strong><button class="icon-btn" id="chat-close" aria-label="Close chat">✕</button></header>
+    <div id="chat-log" class="chat-log"></div>
+    <form id="chat-form"><input id="chat-input" class="input" placeholder="Type a message…" autocomplete="off" /></form>
+  </aside>
+
+  <!-- ================= MODALS ================= -->
+  <div id="consent" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h3>Allow remote access?</h3>
+      <p><strong id="consent-name">Someone</strong> wants to see and control this computer.</p>
+      <p class="muted small">Only accept if you know this person. Scammers often pretend to be tech support.</p>
+      <div class="modal-actions">
+        <button class="btn ghost" id="consent-deny">Decline (<span id="consent-count">30</span>)</button>
+        <button class="btn primary" id="consent-allow">Allow</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="settings" class="modal hidden" role="dialog" aria-modal="true">
+    <form class="modal-box wide" id="settings-form">
+      <h3>Settings</h3>
+      <label class="field-label" for="s-server">Signaling server URL</label>
+      <input id="s-server" class="input" placeholder="wss://remote.example.com" required />
+      <label class="field-label" for="s-name">Device name</label>
+      <input id="s-name" class="input" maxlength="64" />
+      <label class="field-label" for="s-perm">Unattended access password</label>
+      <input id="s-perm" class="input" type="password" placeholder="Leave empty to keep current" autocomplete="new-password" />
+      <div class="row"><label class="check"><input type="checkbox" id="s-perm-clear" /> Remove unattended password</label></div>
+      <div class="row"><label class="check"><input type="checkbox" id="s-consent" /> Ask me before accepting connections (temporary password)</label></div>
+      <div class="row"><label class="check"><input type="checkbox" id="s-clip" /> Sync clipboard text</label></div>
+      <label class="field-label" for="s-ice">ICE servers (JSON) — add a TURN server for strict networks</label>
+      <textarea id="s-ice" class="input mono" rows="5"></textarea>
+      <p id="s-error" class="error small"></p>
+      <div class="modal-actions">
+        <button class="btn ghost" type="button" id="settings-cancel">Cancel</button>
+        <button class="btn primary" type="submit">Save</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

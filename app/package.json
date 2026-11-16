@@ -1,0 +1,39 @@
+{
+  "name": "remotedesk",
+  "productName": "RemoteDesk",
+  "version": "1.0.0",
+  "description": "Cross-platform remote desktop (TeamViewer-style) built on Electron + WebRTC",
+  "main": "main.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "test": "node test/keymap.test.js && node test/crypto.test.mjs",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac",
+    "dist:linux": "electron-builder --linux"
+  },
+  "dependencies": {
+    "@nut-tree-fork/nut-js": "^4.2.6"
+  },
+  "devDependencies": {
+    "electron": "^45.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "com.example.remotedesk",
+    "productName": "RemoteDesk",
+    "files": ["main.js", "preload.js", "src/**", "renderer/**", "package.json"],
+    "asarUnpack": ["node_modules/@nut-tree-fork/**"],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": ["dmg"],
+      "hardenedRuntime": true,
+      "extendInfo": {
+        "NSScreenCaptureUsageDescription": "RemoteDesk shares your screen with the partner you allow to connect."
+      }
+    },
+    "win": { "target": ["nsis"] },
+    "linux": { "target": ["AppImage", "deb"], "category": "Network" }
+  }
+}
