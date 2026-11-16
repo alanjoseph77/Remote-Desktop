@@ -106,6 +106,41 @@ ipcMain.handle('settings:set', (_e, patch) => {
   saveSettings();
   return { ...settings };
 });
+// The renderer's WebSocket API hides why a connection failed (it only fires a
+// bare "error" + close code 1006). Probe the same host:port from Node to get
+// the real reason: refused, timeout, DNS, TLS, ...
+ipcMain.handle('server:probe', (_e, wsUrl) => new Promise((resolve) => {
+  let u;
+  try { u = new URL(String(wsUrl)); } catch { return resolve({ ok: false, short: 'invalid URL', reason: 'Invalid server URL.' }); }
+  if (u.protocol !== 'ws:' && u.protocol !== 'wss:') return resolve({ ok: false, short: 'invalid URL', reason: 'Server URL must start with ws:// or wss://' });
+  const secure = u.protocol === 'wss:';
+  const port = u.port || (secure ? 443 : 80);
+  const where = `${u.hostname}:${port}`;
+  const mod = require(secure ? 'https' : 'http');
+  let done = false;
+  const finish = (r) => { if (!done) { done = true; resolve(r); } };
+  const req = mod.get({ hostname: u.hostname, port, path: '/health', timeout: 5000 }, (res) => {
+    res.resume();
+    finish({ ok: true, short: 'WebSocket rejected', reason: `Server at ${where} is reachable (HTTP ${res.statusCode}) but the WebSocket was rejected — is it a RemoteDesk server?` });
+  });
+  req.on('timeout', () => {
+    req.destroy();
+    finish({ ok: false, code: 'ETIMEDOUT', short: 'timeout', reason: `Timed out reaching ${where} — firewall on the server PC is blocking port ${port}, wrong IP, or a different network.` });
+  });
+  req.on('error', (err) => {
+    const c = err.code || '';
+    let reason, short = 'cannot connect';
+    if (c === 'ECONNREFUSED') short = 'connection refused', reason = `Connection refused by ${where} — the signaling server is not running there (or not on port ${port}).`;
+    else if (c === 'ETIMEDOUT') short = 'timeout', reason = `Timed out reaching ${where} — firewall blocking port ${port}, or wrong IP.`;
+    else if (c === 'ENOTFOUND' || c === 'EAI_AGAIN') short = 'DNS error', reason = `DNS: cannot resolve "${u.hostname}". Check the server address.`;
+    else if (c === 'EHOSTUNREACH' || c === 'ENETUNREACH') short = 'host unreachable', reason = `Host ${where} is unreachable — not on the same network?`;
+    else if (c === 'ECONNRESET') short = 'connection reset', reason = `Connection to ${where} was reset${secure ? ' — the server may not support TLS (try ws://)' : ''}.`;
+    else if (/CERT|SSL|TLS|SELF_SIGNED|EPROTO/i.test(c + ' ' + err.message)) short = 'TLS error', reason = `TLS error with ${where}: ${String(err.message).split(':error:')[0]}${secure ? ' (for a plain LAN server use ws:// not wss://)' : ''}`;
+    else reason = `Cannot reach ${where}: ${c || err.message}`;
+    finish({ ok: false, code: c, short, reason });
+  });
+}));
+
 ipcMain.handle('app:info', () => ({
   platform: process.platform,
   hostname: os.hostname(),

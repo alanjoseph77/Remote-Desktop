@@ -36,6 +36,8 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
 /* ---------- banner ---------- */
 .banner { display: flex; align-items: center; gap: 14px; padding: 10px 22px; background: #3a1d20; border-bottom: 1px solid #5a2a2f; }
 .banner-text { flex: 1; }
+#server-error { margin: 0; padding: 10px 22px 0; }
+#server-error:empty { display: none; }
 .warn-box { margin: 14px 22px 0; padding: 10px 14px; border-radius: 10px; background: #2d2610; border: 1px solid #5a4a14; color: #f5d98b; display: flex; gap: 10px; align-items: center; }
 .warn-box .btn { margin-left: auto; }
 

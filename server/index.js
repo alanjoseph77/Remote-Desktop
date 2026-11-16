@@ -19,6 +19,8 @@ const path = require('path');
 const { WebSocketServer } = require('ws');
 
 const PORT = Number(process.env.PORT || 8080);
+// Unset = all interfaces (IPv4 0.0.0.0 + IPv6 ::), so other PCs on the LAN can connect.
+const HOST = process.env.HOST || undefined;
 const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, 'ids.json');
 const MAX_PAYLOAD = 256 * 1024;
 const CONNECT_LIMIT_PER_MIN = 20;
@@ -161,6 +163,18 @@ const hb = setInterval(() => {
 wss.on('close', () => clearInterval(hb));
 
 if (require.main === module) {
-  server.listen(PORT, () => console.log(`RemoteDesk signaling server on :${PORT}`));
+  server.listen(PORT, HOST, () => {
+    console.log(`RemoteDesk signaling server on ${HOST || 'all interfaces'}, port ${PORT}`);
+    console.log(`  this PC:        ws://localhost:${PORT}`);
+    for (const list of Object.values(require('os').networkInterfaces())) {
+      for (const a of list || []) {
+        if (a.family === 'IPv4' && !a.internal) console.log(`  other PCs (LAN): ws://${a.address}:${PORT}`);
+      }
+    }
+  });
+  server.on('error', (err) => {
+    console.error(err.code === 'EADDRINUSE' ? `Port ${PORT} is already in use. Stop the other process or set PORT=...` : err);
+    process.exit(1);
+  });
 }
 module.exports = { server, wss };

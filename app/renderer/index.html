@@ -17,6 +17,7 @@
         <button id="open-settings" class="icon-btn" title="Settings" aria-label="Settings">⚙</button>
       </div>
     </header>
+    <p id="server-error" class="error small" role="alert"></p>
 
     <div id="host-banner" class="banner hidden">
       <div class="banner-text">
@@ -120,7 +121,8 @@
     <form class="modal-box wide" id="settings-form">
       <h3>Settings</h3>
       <label class="field-label" for="s-server">Signaling server URL</label>
-      <input id="s-server" class="input" placeholder="wss://remote.example.com" required />
+      <input id="s-server" class="input" placeholder="ws://192.168.1.20:8080 or wss://remote.example.com" required />
+      <p class="muted small">On the PC running the server: ws://localhost:8080. On other computers on your Wi-Fi/LAN: ws://&lt;that PC's IP&gt;:8080</p>
       <label class="field-label" for="s-name">Device name</label>
       <input id="s-name" class="input" maxlength="64" />
       <label class="field-label" for="s-perm">Unattended access password</label>

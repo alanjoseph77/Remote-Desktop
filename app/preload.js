@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('rd', {
   getSettings: () => ipcRenderer.invoke('settings:get'),
   setSettings: (patch) => ipcRenderer.invoke('settings:set', patch),
   info: () => ipcRenderer.invoke('app:info'),
+  probeServer: (url) => ipcRenderer.invoke('server:probe', url),
   displays: () => ipcRenderer.invoke('displays:list'),
   selectCapture: (id) => ipcRenderer.invoke('capture:select', id),
   permsStatus: () => ipcRenderer.invoke('perms:status'),

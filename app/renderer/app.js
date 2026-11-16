@@ -98,12 +98,14 @@ const host = new HostController({
 
 function startSignaling() {
   if (sig) sig.close();
-  sig = new Signaling(settings.serverUrl);
+  sig = new Signaling(settings.serverUrl, { diagnose: (url) => rd.probeServer(url) });
   host.sig = sig;
   sig.addEventListener('status', (e) => {
     const on = e.detail.online;
     $('server-status').className = 'pill ' + (on ? 'online' : 'offline');
     $('server-status').querySelector('span').textContent = on ? 'Ready' : (e.detail.error || 'Offline — reconnecting');
+    $('server-status').title = on ? settings.serverUrl : (e.detail.reason || '');
+    $('server-error').textContent = on ? '' : (e.detail.reason ? `${e.detail.reason} Server address is set in Settings (⚙).` : '');
   });
   sig.addEventListener('open', () => sig.send({ type: 'register', id: settings.hostId, token: settings.hostToken }));
   sig.addEventListener('close', () => {
