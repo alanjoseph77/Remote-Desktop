@@ -45,6 +45,8 @@ To run two copies on one machine for testing:
 
 ## Building installers
 
+Set `defaultServerUrl` in `app/package.json` to your server first, e.g. `ws://10.100.80.238:8080` or `wss://remote.example.com`. Installed copies then connect without any setup; it can still be changed in Settings.
+
 ```bash
 cd app
 npm run dist:win     # .exe installer  (run on Windows)

@@ -27,7 +27,7 @@ if (process.env.REMOTEDESK_PROFILE) app.setPath('userData', path.resolve(process
 // ---------- settings ----------
 const settingsFile = () => path.join(app.getPath('userData'), 'settings.json');
 const defaults = {
-  serverUrl: 'ws://localhost:8080',
+  serverUrl: require('./package.json').defaultServerUrl || 'ws://localhost:8080',
   hostId: null,
   hostToken: null,
   permanentKey: null, // base64 PBKDF2-derived key (the password itself is never stored)

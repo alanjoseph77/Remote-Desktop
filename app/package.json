@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "description": "Cross-platform remote desktop (TeamViewer-style) built on Electron + WebRTC",
   "main": "main.js",
+  "defaultServerUrl": "ws://10.100.80.238:8080",
   "license": "MIT",
   "scripts": {
     "start": "electron .",
@@ -23,17 +24,48 @@
   "build": {
     "appId": "com.example.remotedesk",
     "productName": "RemoteDesk",
-    "files": ["main.js", "preload.js", "src/**", "renderer/**", "package.json"],
-    "asarUnpack": ["node_modules/@nut-tree-fork/**"],
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**",
+      "renderer/**",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/@nut-tree-fork/**"
+    ],
     "mac": {
       "category": "public.app-category.utilities",
-      "target": ["dmg"],
+      "target": [
+        "dmg"
+      ],
       "hardenedRuntime": true,
       "extendInfo": {
         "NSScreenCaptureUsageDescription": "RemoteDesk shares your screen with the partner you allow to connect."
       }
     },
-    "win": { "target": ["nsis"] },
-    "linux": { "target": ["AppImage", "deb"], "category": "Network" }
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "RemoteDesk-Setup-${version}.${ext}"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Network"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "RemoteDesk"
+    },
+    "directories": {
+      "output": "dist"
+    }
   }
 }
